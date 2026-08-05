@@ -42,16 +42,46 @@ export default function Home() {
   const streamRef = useRef(null);
   const timerRef = useRef(null);
   const mimeTypeRef = useRef("");
+  const wakeLockRef = useRef(null);
+  const interruptedRef = useRef(false);
+
+  const releaseWakeLock = useCallback(() => {
+    wakeLockRef.current?.release?.().catch(() => {});
+    wakeLockRef.current = null;
+  }, []);
+
+  const requestWakeLock = useCallback(async () => {
+    try {
+      if ("wakeLock" in navigator) {
+        wakeLockRef.current = await navigator.wakeLock.request("screen");
+      }
+    } catch {
+      // Wake Lock isn't supported/available (older iOS, low battery mode, etc).
+      // Recording can still proceed — the screen just won't be held awake automatically.
+    }
+  }, []);
 
   useEffect(() => {
+    // If the screen locks anyway (wake lock denied, or the user presses the
+    // physical lock button), iOS kills the mic. Re-acquire the wake lock when
+    // we come back to the foreground so the *next* recording is protected too.
+    const onVisibility = () => {
+      if (document.visibilityState === "visible" && mediaRecorderRef.current?.state === "recording") {
+        requestWakeLock();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
       clearInterval(timerRef.current);
       streamRef.current?.getTracks().forEach((t) => t.stop());
+      releaseWakeLock();
     };
-  }, []);
+  }, [requestWakeLock, releaseWakeLock]);
 
   const startRecording = useCallback(async () => {
     setErrorMessage("");
+    interruptedRef.current = false;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
@@ -60,15 +90,37 @@ export default function Home() {
       const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       chunksRef.current = [];
 
+      // iOS cuts off microphone access the moment the screen locks or Safari
+      // is backgrounded — this fires when that happens mid-recording.
+      stream.getAudioTracks().forEach((track) => {
+        track.onended = () => {
+          if (mediaRecorderRef.current?.state === "recording") {
+            interruptedRef.current = true;
+            mediaRecorderRef.current.stop();
+          }
+        };
+      });
+
       recorder.ondataavailable = (e) => {
         if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
       };
 
       recorder.onstop = () => {
+        clearInterval(timerRef.current);
+        releaseWakeLock();
+        streamRef.current?.getTracks().forEach((t) => t.stop());
+
+        if (interruptedRef.current) {
+          chunksRef.current = [];
+          setErrorMessage(
+            "Recording stopped because the screen locked or the app went to the background. iPhone doesn't allow web apps to use the microphone while locked — keep the screen on and this app in the foreground while recording. (This app now tries to keep your screen awake automatically during recording, but that only works if Low Power Mode is off.)"
+          );
+          setPhase("error");
+          return;
+        }
+
         const blob = new Blob(chunksRef.current, { type: mimeTypeRef.current || "audio/webm" });
         setAudioUrl(URL.createObjectURL(blob));
-        streamRef.current?.getTracks().forEach((t) => t.stop());
-        clearInterval(timerRef.current);
         setPhase("recorded");
       };
 
@@ -77,19 +129,21 @@ export default function Home() {
       setSeconds(0);
       setPhase("recording");
       timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
+      requestWakeLock();
     } catch (err) {
       setErrorMessage(
         "Couldn't access the microphone. Check that this app has microphone permission in iPhone Settings > Safari."
       );
       setPhase("error");
     }
-  }, []);
+  }, [requestWakeLock, releaseWakeLock]);
 
   const stopRecording = useCallback(() => {
     mediaRecorderRef.current?.stop();
   }, []);
 
   const reset = useCallback(() => {
+    releaseWakeLock();
     setPhase("idle");
     setSeconds(0);
     setAudioUrl(null);
@@ -97,7 +151,7 @@ export default function Home() {
     setNotionUrl("");
     setSelectedCategory("");
     chunksRef.current = [];
-  }, []);
+  }, [releaseWakeLock]);
 
   const submit = useCallback(
     async (category) => {
