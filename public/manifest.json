@@ -1,0 +1,14 @@
+{
+  "name": "Pamoja Voice Notes",
+  "short_name": "Voice Notes",
+  "description": "Record a voice note, pick a category, and send the transcript straight to Notion.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1f1c",
+  "theme_color": "#1e6f5c",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
