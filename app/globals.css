@@ -181,6 +181,53 @@ audio {
   text-decoration: underline;
 }
 
+.user-bar {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.signout-link {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 13px;
+  text-decoration: underline;
+  padding: 4px 0;
+}
+
+.signin-card {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 28px 20px;
+}
+
+.google-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  color: #1f1f1f;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 22px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.google-button:active {
+  transform: scale(0.98);
+}
+
 .spinner {
   display: inline-block;
   width: 14px;
