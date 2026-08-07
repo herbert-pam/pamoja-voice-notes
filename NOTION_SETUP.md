@@ -1,8 +1,8 @@
 # Step 1: Set up Notion
 
 You'll create one Notion database that holds every recording, with a
-Category field to sort Marketing / Operations / Tournaments notes. This
-takes about 5 minutes.
+Category field to sort Marketing / Operations / Tournaments notes and a
+Recorded By field showing who made each note. This takes about 5 minutes.
 
 ## 1. Create the integration (this is how the app talks to your Notion)
 
@@ -21,6 +21,9 @@ takes about 5 minutes.
      - `Pamoja Operations`
      - `Pamoja Tournaments`
    - `Date` — add a new property, type **Date**.
+   - `Recorded By` — add a new property, type **Select**. You don't need to
+     add options here — the app creates a new option automatically the
+     first time each person signs in and records a note.
 
 Every recording will show up as a page in this database, with the full transcript written into the page body (not just the property — Notion property text is capped at 2000 characters, so long transcripts go in the body instead).
 

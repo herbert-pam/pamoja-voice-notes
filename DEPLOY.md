@@ -35,13 +35,19 @@
    detect it's a Next.js app automatically — leave the build settings as
    the defaults.
 4. Before clicking Deploy, expand **Environment Variables** and add all
-   three of these (paste the values you saved earlier, not into this chat):
+   seven of these (paste the values you saved earlier, not into this chat):
    - `OPENAI_API_KEY`
    - `NOTION_API_KEY`
    - `NOTION_DATABASE_ID`
+   - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `AUTH_SECRET`,
+     `ALLOWED_EMAILS` — see `GOOGLE_SIGNIN_SETUP.md` for where these come
+     from. The app requires sign-in, so it won't work without them.
 5. Click **Deploy**. It takes about a minute the first time.
 6. Once it finishes, Vercel gives you a URL like
    `https://pamoja-voice-notes.vercel.app`. Open that on your iPhone.
+   You'll need that exact URL to finish the Google OAuth setup in
+   `GOOGLE_SIGNIN_SETUP.md`, since it has to be entered there as the
+   redirect address.
 
 # Step 5: Add it to your iPhone home screen
 
