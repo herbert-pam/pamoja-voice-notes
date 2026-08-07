@@ -42,12 +42,13 @@ function GoogleIcon() {
 }
 
 function SignInScreen() {
-  const [denied, setDenied] = useState(false);
+  const [errorCode, setErrorCode] = useState("");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
-      if (params.get("error")) setDenied(true);
+      const err = params.get("error");
+      if (err) setErrorCode(err);
     }
   }, []);
 
@@ -58,10 +59,11 @@ function SignInScreen() {
         <p>Sign in to record, tag, and send notes to Notion.</p>
       </div>
       <div className="card signin-card">
-        {denied && (
+        {errorCode && (
           <p className="status error" style={{ marginTop: 0 }}>
-            That Google account isn't approved for this app yet. Ask Herbert to add your email to the
-            allowed list.
+            {errorCode === "AccessDenied"
+              ? "That Google account isn't approved for this app yet. Ask Herbert to add your email to the allowed list."
+              : `Sign-in couldn't complete (error: ${errorCode}). Ask Herbert to double-check the Vercel environment variables.`}
           </p>
         )}
         <button className="google-button" onClick={() => signIn("google")}>
